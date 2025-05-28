@@ -19,9 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Montar os arquivos estáticos do frontend
-app.mount("/", StaticFiles(directory="frontend-react/dist", html=True), name="frontend")
-
 @app.get("/api")
 async def root():
     return {"message": "BubbleScan API no ar!"}
@@ -108,4 +105,7 @@ async def analisar_url(request: AnaliseRequest):
         return resultado
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Montar os arquivos estáticos do frontend por último
+app.mount("/", StaticFiles(directory="frontend-react/dist", html=True), name="frontend") 
