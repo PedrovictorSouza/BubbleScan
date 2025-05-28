@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bubblescan-api
+    env: python
+    buildCommand: pip install -r scanner-comunidade/requirements.txt
+    startCommand: cd scanner-comunidade && uvicorn api:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
