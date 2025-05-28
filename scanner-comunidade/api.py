@@ -27,11 +27,11 @@ app.mount(
     name="static"
 )
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "BubbleScan API no ar!"}
 
-@app.get("/healthz")
+@app.get("/api/healthz")
 async def health():
     return {"status": "ok"}
 
@@ -88,14 +88,14 @@ def gerar_resultado_mock():
         "exemplo": exemplo
     }
 
-@app.post("/analise-mock")
+@app.post("/api/analise-mock")
 async def analisar_url_mock(request: AnaliseRequest):
     """Rota mock para testes de desenvolvimento"""
     # Simula um pequeno delay para parecer mais realista
     await asyncio.sleep(1)
     return gerar_resultado_mock()
 
-@app.post("/analise")
+@app.post("/api/analise")
 async def analisar_url(request: AnaliseRequest):
     try:
         # Coletar comentários e título
