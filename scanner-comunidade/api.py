@@ -20,18 +20,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve os arquivos estáticos (CSS, JS, imagens) em /static
+# Serve apenas os assets estáticos em /static
 app.mount(
     "/static",
     StaticFiles(directory="frontend-react/dist/assets"),
-    name="static",
+    name="static"
 )
 
-@app.get("/api")
+@app.get("/")
 async def root():
     return {"message": "BubbleScan API no ar!"}
 
-@app.get("/api/healthz")
+@app.get("/healthz")
 async def health():
     return {"status": "ok"}
 
@@ -88,14 +88,14 @@ def gerar_resultado_mock():
         "exemplo": exemplo
     }
 
-@app.post("/api/analise-mock")
+@app.post("/analise-mock")
 async def analisar_url_mock(request: AnaliseRequest):
     """Rota mock para testes de desenvolvimento"""
     # Simula um pequeno delay para parecer mais realista
     await asyncio.sleep(1)
     return gerar_resultado_mock()
 
-@app.post("/api/analise")
+@app.post("/analise")
 async def analisar_url(request: AnaliseRequest):
     try:
         # Coletar comentários e título
@@ -115,15 +115,15 @@ async def analisar_url(request: AnaliseRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Rota raiz: devolve o index.html
+# Rota raiz: entrega o index.html
 @app.get("/", include_in_schema=False)
 async def serve_index():
     return FileResponse("frontend-react/dist/index.html")
 
-# Rota curinga para SPA: devolve index.html em qualquer path não-API
+# Rota curinga para SPA: qualquer GET que não seja /api ou /static
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str, request: Request):
-    # Se for chamada /api/*, deixamos 404 normal
+    # Se for rota de API, devolve 404 normal
     if request.url.path.startswith("/api"):
         raise HTTPException(status_code=404, detail="Not Found")
     return FileResponse("frontend-react/dist/index.html") 
