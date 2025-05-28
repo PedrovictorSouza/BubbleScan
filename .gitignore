@@ -3,3 +3,5 @@ scanner-comunidade/venv/
 scanner-comunidade/__pycache__/
 .DS_Store
 scanner-comunidade/node_modules/
+**/__pycache__/
+*.pyc
