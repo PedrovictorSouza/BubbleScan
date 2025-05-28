@@ -20,12 +20,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve apenas os assets estáticos em /static
+# Serve apenas os assets estáticos em /assets
 app.mount(
-    "/static",
+    "/assets",
     StaticFiles(directory="frontend-react/dist/assets"),
-    name="static"
+    name="assets"
 )
+
+# favicon do Vite
+@app.get("/vite.svg", include_in_schema=False)
+async def favicon():
+    return FileResponse("frontend-react/dist/vite.svg")
 
 @app.get("/api")
 async def root_api():
@@ -120,10 +125,12 @@ async def analisar_url(request: AnaliseRequest):
 async def serve_index():
     return FileResponse("frontend-react/dist/index.html")
 
-# Fallback para SPA em qualquer outra GET não-/api e não-/static
+# Fallback para SPA em qualquer outra GET não-/api e não-/assets
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str, request: Request):
-    # Não intercepta rotas de API nem de assets
-    if request.url.path.startswith("/api") or request.url.path.startswith("/static"):
+    # não intercepta API nem assets nem favicon
+    if request.url.path.startswith("/api") \
+       or request.url.path.startswith("/assets") \
+       or request.url.path == "/vite.svg":
         raise HTTPException(status_code=404, detail="Not Found")
     return FileResponse("frontend-react/dist/index.html") 
