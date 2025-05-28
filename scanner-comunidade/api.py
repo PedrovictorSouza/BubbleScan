@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from services.scraper import get_hn_comments
 from services.analisador import analisar_comentarios
@@ -17,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Montar os arquivos estáticos do frontend
+app.mount("/", StaticFiles(directory="frontend-react/dist", html=True), name="frontend")
 
 @app.get("/")
 async def root():
