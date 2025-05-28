@@ -128,9 +128,12 @@ async def serve_index():
 # Fallback para SPA em qualquer outra GET não-/api e não-/assets
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str, request: Request):
-    # não intercepta API nem assets nem favicon
-    if request.url.path.startswith("/api") \
-       or request.url.path.startswith("/assets") \
-       or request.url.path == "/vite.svg":
+    # não intercepta API, nem assets, nem favicon
+    if (
+        request.url.path.startswith("/api")
+        or request.url.path.startswith("/assets")
+        or request.url.path == "/vite.svg"
+    ):
         raise HTTPException(status_code=404, detail="Not Found")
+
     return FileResponse("frontend-react/dist/index.html") 
