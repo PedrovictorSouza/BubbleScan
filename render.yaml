@@ -1,13 +1,13 @@
 services:
   - type: web
-    name: bubblescan-api
+    name: BubbleScan
     env: python
     buildCommand: |
-      cd frontend-react
+      cd scanner-comunidade/frontend-react
       npm ci
       npm run build
-      cd ..
-      pip install -r requirements.txt
+      cd ../..
+      pip install -r scanner-comunidade/requirements.txt
     startCommand: cd scanner-comunidade && uvicorn api:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
       - key: OPENAI_API_KEY
