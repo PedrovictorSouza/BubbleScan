@@ -28,7 +28,7 @@ app.mount(
 )
 
 @app.get("/api")
-async def root():
+async def root_api():
     return {"message": "BubbleScan API no ar!"}
 
 @app.get("/api/healthz")
@@ -115,15 +115,15 @@ async def analisar_url(request: AnaliseRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Rota raiz: entrega o index.html
+# Serve index.html em GET /
 @app.get("/", include_in_schema=False)
 async def serve_index():
     return FileResponse("frontend-react/dist/index.html")
 
-# Rota curinga para SPA: qualquer GET que não seja /api ou /static
+# Fallback para SPA em qualquer outra GET não-/api e não-/static
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str, request: Request):
-    # Se for rota de API, devolve 404 normal
-    if request.url.path.startswith("/api"):
+    # Não intercepta rotas de API nem de assets
+    if request.url.path.startswith("/api") or request.url.path.startswith("/static"):
         raise HTTPException(status_code=404, detail="Not Found")
     return FileResponse("frontend-react/dist/index.html") 
