@@ -21,8 +21,8 @@ export default function HomeScreen() {
 
   const isMock = import.meta.env.VITE_USE_MOCK === 'true';
   const endpoint = isMock
-    ? 'http://127.0.0.1:8000/api/analise-mock'
-    : `${import.meta.env.VITE_API_URL}/api/analise`;
+    ? '/analise-mock'
+    : '/analise';
 
   React.useEffect(() => {
     let interval;
