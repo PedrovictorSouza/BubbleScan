@@ -5,3 +5,7 @@ scanner-comunidade/__pycache__/
 scanner-comunidade/node_modules/
 **/__pycache__/
 *.pyc
+# Environment variables
+.env
+*.env
+**/.env
