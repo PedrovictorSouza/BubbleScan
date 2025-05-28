@@ -28,7 +28,7 @@ app.mount(
 )
 
 # favicon do Vite
-@app.get("/vite.svg", include_in_schema=False)
+@app.api_route("/vite.svg", methods=["GET", "HEAD"], include_in_schema=False)
 async def favicon():
     return FileResponse("frontend-react/dist/vite.svg")
 
@@ -121,12 +121,12 @@ async def analisar_url(request: AnaliseRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve index.html em GET /
-@app.get("/", include_in_schema=False)
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 async def serve_index():
     return FileResponse("frontend-react/dist/index.html")
 
 # Fallback para SPA em qualquer outra GET não-/api e não-/assets
-@app.get("/{full_path:path}", include_in_schema=False)
+@app.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
 async def serve_spa(full_path: str, request: Request):
     # não intercepta API, nem assets, nem favicon
     if (
