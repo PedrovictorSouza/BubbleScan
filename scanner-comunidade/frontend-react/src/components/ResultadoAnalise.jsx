@@ -18,7 +18,7 @@ export default function ResultadoAnalise({
           <h2 className="text-3xl font-bold text-blue-900 tracking-tight mb-2">{titulo}</h2>
         </div>
       )}
-      <h2 className="text-2xl font-bold text-center text-gray-800 tracking-tight" style={{ letterSpacing: '0.01em', marginBottom: 'none', marginTop: '25px', marginBottom: '0px', fontSize: '11pt' }}>Resultado da Análise</h2>
+      <h2 className="text-2xl font-bold text-center text-gray-800 tracking-tight" style={{ letterSpacing: '0.01em', marginTop: '25px', marginBottom: '0px', fontSize: '11pt' }}>Resultado da Análise</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Sentimento */}
         <div
