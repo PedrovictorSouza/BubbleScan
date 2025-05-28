@@ -18,6 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"message": "BubbleScan API no ar!"}
+
+@app.get("/healthz")
+async def health():
+    return {"status": "ok"}
+
 class AnaliseRequest(BaseModel):
     url: str
 
