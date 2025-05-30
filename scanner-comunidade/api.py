@@ -21,6 +21,11 @@ app.add_middleware(
 # Registrar rotas
 app.include_router(analise_routes.router, prefix="/api")
 
+# Alias para manter compatibilidade com o endpoint antigo
+@app.post("/api/analise", include_in_schema=False)
+async def analise_alias(request: analise_routes.AnaliseRequest):
+    return await analise_routes.analisar_auto(request)
+
 # Serve apenas os assets estáticos em /assets
 app.mount(
     "/assets",
