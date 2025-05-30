@@ -25,7 +25,6 @@ def coletar_comentarios_reddit(url: str) -> List[str]:
     
     # Validação das credenciais
     client_id = os.getenv('REDDIT_CLIENT_ID')
-    client_secret = os.getenv('REDDIT_CLIENT_SECRET', '')
     user_agent = os.getenv('REDDIT_USER_AGENT', 'BubbleScan/1.0 by u/seu_usuario')
     
     if not client_id:
@@ -34,11 +33,12 @@ def coletar_comentarios_reddit(url: str) -> List[str]:
             "Configure a variável de ambiente REDDIT_CLIENT_ID"
         )
     
-    # Inicializa o cliente Reddit
+    # Inicializa o cliente Reddit com o fluxo correto para installed apps
     reddit = praw.Reddit(
         client_id=client_id,
-        client_secret=client_secret,
-        user_agent=user_agent
+        client_secret=None,  # Força o fluxo userless correto para installed apps
+        user_agent=user_agent,
+        check_for_async=False  # Evita o warning "async environment"
     )
     reddit.read_only = True
     
