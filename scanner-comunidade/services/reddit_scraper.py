@@ -25,20 +25,22 @@ def coletar_comentarios_reddit(url: str) -> List[str]:
     
     # Validação das credenciais
     client_id = os.getenv('REDDIT_CLIENT_ID')
-    client_secret = os.getenv('REDDIT_CLIENT_SECRET')
+    client_secret = os.getenv('REDDIT_CLIENT_SECRET', '')
+    user_agent = os.getenv('REDDIT_USER_AGENT', 'BubbleScan/1.0 by u/seu_usuario')
     
-    if not client_id or not client_secret:
+    if not client_id:
         raise ValueError(
-            "Credenciais do Reddit não configuradas. "
-            "Configure as variáveis de ambiente REDDIT_CLIENT_ID e REDDIT_CLIENT_SECRET"
+            "Credencial do Reddit não configurada. "
+            "Configure a variável de ambiente REDDIT_CLIENT_ID"
         )
     
     # Inicializa o cliente Reddit
     reddit = praw.Reddit(
         client_id=client_id,
         client_secret=client_secret,
-        user_agent="BubbleScan/1.0 by u/seu_usuario"
+        user_agent=user_agent
     )
+    reddit.read_only = True
     
     try:
         # Extrai o id do post a partir da URL
