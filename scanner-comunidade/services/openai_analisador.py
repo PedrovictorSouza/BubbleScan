@@ -1,7 +1,11 @@
 # services/openai_analisador.py
 import os
+from dotenv import load_dotenv
 import openai
 from typing import List
+
+# Carrega as variáveis de ambiente do .env
+load_dotenv()
 
 def analisar_sentimento_com_ia(comentarios: List[str]) -> str:
     """
@@ -11,8 +15,6 @@ def analisar_sentimento_com_ia(comentarios: List[str]) -> str:
     if not api_key:
         return "erro: OPENAI_API_KEY não configurada"
     
-    openai.api_key = api_key
-
     # Garante que comentarios é uma lista e tem elementos
     if not isinstance(comentarios, list) or not comentarios:
         return "erro: lista de comentários inválida"
@@ -29,7 +31,8 @@ def analisar_sentimento_com_ia(comentarios: List[str]) -> str:
     )
 
     try:
-        resposta = openai.chat.completions.create(
+        client = openai.OpenAI(api_key=api_key)
+        resposta = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Você é um analista de sentimentos objetivo."},

@@ -6,6 +6,7 @@ import openai
 import os
 import ast
 import json
+import time
 
 STOPWORDS = set(map(str.lower, {
     "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
@@ -35,10 +36,30 @@ def identificar_tecnologias(comentarios: List[str]) -> List[str]:
     return [tech for tech in TECNOLOGIAS_KNOWN if tech in texto]
 
 def analisar_comentarios(comentarios: List[str]) -> Dict:
+    """
+    Analisa uma lista de comentários e retorna um dicionário com os resultados.
+    """
+    inicio = time.time()
+    print(f"\n🔍 Iniciando análise de {len(comentarios)} comentários...")
+    
+    # Analisa o sentimento
+    sentimento = analisar_sentimento_com_ia(comentarios)
+    print(f"😊 Sentimento detectado: {sentimento}")
+    
+    # Extrai palavras-chave
+    palavras_chave = extrair_palavras_chave(comentarios)
+    print(f"🔑 Palavras-chave extraídas: {', '.join(palavras_chave)}")
+    
+    # Identifica tecnologias
+    tecnologias = identificar_tecnologias(comentarios)
+    print(f"💻 Tecnologias identificadas: {', '.join(tecnologias)}")
+    
+    print(f"⏱️ Tempo de análise: {time.time() - inicio:.2f}s")
+    
     return {
-        "palavras_chave": extrair_palavras_chave(comentarios),
-        "tecnologias": identificar_tecnologias(comentarios),
-        "sentimento": analisar_sentimento_com_ia(comentarios)
+        "sentimento": sentimento,
+        "palavras_chave": palavras_chave,
+        "tecnologias": tecnologias
     }
 
 def limitar_comentarios_por_tokens(comentarios, max_tokens=14000):
@@ -58,7 +79,10 @@ def analise_sociocultural_openai(comentarios):
 ⚠️ Instrução para o Copilot / API:
 
 IMPORTANTE:
-Esta análise deve evitar qualquer suavização, moralismo ou positividade artificial.
++ Avalie o **afeto predominante nos comentaristas**.
++ Ignore o comportamento ou grupo que eles criticam; descreva apenas a
++ atitude deles (empatia, indignação, humor, cinismo, etc.).
++ Esta análise deve evitar qualquer suavização, moralismo ou positividade artificial.
 Você é um analista simbólico, orientado por princípios psicanalíticos lacanianos.
 
 Seu foco não é apenas o que é dito, mas:
@@ -71,6 +95,11 @@ Seu foco não é apenas o que é dito, mas:
 Descreva o comportamento simbólico da comunidade como um etólogo descrevendo primatas — com frieza interpretativa e atenção aos sintomas discursivos.
 
 Preencha os campos abaixo com esse espírito:
+
++Quando escrever:
++– Comece *area_atencao* pelo afeto dominante (ex.: "Indignação com ...").
++– Em *caracterizacao_cultural* revele o desejo inconsciente do grupo (o ganho simbólico que buscam ao criticar).
++– O *exemplo* deve mostrar alguém reprovando o desdém, não praticando-o.
 
 sentimento:
 Não é "positivo ou negativo", mas o afeto que atravessa os sujeitos. Ex: estresse ritualizado, desejo culpado, ceticismo irônico, gozo por exclusão, vergonha performada.
@@ -93,12 +122,12 @@ Comentários:
 {comentarios_limitados}
 '''
     print("PROMPT ENVIADO PARA OPENAI:\n", prompt)
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    response = openai.ChatCompletion.create(
+    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=700,
-        temperature=0.7,
+        temperature=0.7
     )
     content = response.choices[0].message.content
     print("RESPOSTA BRUTA OPENAI:\n", content)

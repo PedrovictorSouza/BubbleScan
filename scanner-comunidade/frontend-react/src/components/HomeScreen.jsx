@@ -20,9 +20,7 @@ export default function HomeScreen() {
   const [loadingDots, setLoadingDots] = useState(0);
 
   const isMock = import.meta.env.VITE_USE_MOCK === 'true';
-  const endpoint = isMock
-    ? '/api/analise-mock'
-    : '/api/analise';
+  const endpoint = isMock ? '/api/analise-mock' : '/api/analise_auto';
 
   React.useEffect(() => {
     let interval;
@@ -76,15 +74,18 @@ export default function HomeScreen() {
       const response = await axios.post(endpoint, {
         url: inputUrl
       });
-      const { titulo, palavras_chave, tecnologias, sentimento, area_atencao, caracterizacao_cultural, boas_praticas, exemplo } = response.data;
-      setResultadoTitulo(titulo);
-      setResultadoPalavras(palavras_chave);
-      setResultadoTecnologias(tecnologias);
+
+      const { sentimento, titulo, palavras_chave, tecnologias, area_atencao, caracterizacao_cultural, boas_praticas, exemplo } = response.data;
+
       setResultadoSentimento(sentimento);
-      setAreaAtencao(area_atencao);
+      setResultadoTitulo(titulo);
+      setResultadoPalavras(palavras_chave || []);
+      setResultadoTecnologias(tecnologias || []);
+      setAreaAtencao(area_atencao || "");
       setCaracterizacaoCultural(Array.isArray(caracterizacao_cultural) ? caracterizacao_cultural : (caracterizacao_cultural ? [caracterizacao_cultural] : []));
       setBoasPraticas(Array.isArray(boas_praticas) ? boas_praticas : (boas_praticas ? [boas_praticas] : []));
-      setExemplo(exemplo);
+      setExemplo(exemplo || "");
+
       setLogs(logs => [...logs, "Análise concluída!"]);
       setTimeout(() => {
         setShowLog(false);
