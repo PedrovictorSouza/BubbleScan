@@ -106,35 +106,67 @@ export default function HomeScreen() {
           <div className="max-w-md mx-auto">
             <div className="divide-y divide-gray-200">
               <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                <h1
-                  className={`text-2xl font-bold mb-2 text-center text-gray-900`}
-                  style={{ ...(mostrarResultado ? { fontSize: '16pt' } : {}), marginBottom: '5px' }}
-                >
-                  Bubble <span style={{ fontFamily: 'Lexend Giga, sans-serif' }}>Scan</span>
-                </h1>
-                <p className="text-sm text-gray-600 text-center mb-8 -mt-2">Feramenta de mapeamento do impulso coletivo.</p>
-                {/* Input URL + Botão Analisar juntos */}
-                <div className="mb-8 w-full">
-                  <label htmlFor="url" className="block font-medium text-gray-700 mb-2 text-left" style={{ fontSize: '11pt' }}>Cole o link no campo abaixo</label>
-                  <div className="flex flex-col md:flex-row md:items-center gap-4 w-full" style={{ justifyContent: 'space-between', display: 'flex' }}>
-                    <input
-                      type="text"
-                      id="url"
-                      value={inputUrl}
-                      onChange={e => setInputUrl(e.target.value)}
-                      placeholder="cole aqui a url"
-                      className={`w-full px-4 py-2 border-2 rounded-md focus:ring-blue-500 focus:border-orange-400 italic placeholder-gray-400 ${urlError ? 'border-red-500' : 'border-gray-300'}`}
-                      style={{ paddingLeft: '5px', minWidth: '220px', width: '90%' }}
-                    />
-                    <button
-                      onClick={analisarUrl}
-                      className={`analisar-btn px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-300 ${inputUrl.trim() ? '' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                      style={inputUrl.trim() ? { background: 'rgb(96, 121, 234)', color: 'white', minWidth: '120px', marginTop: '0', marginLeft: '10px' } : { minWidth: '120px', marginTop: '0', marginLeft: '10px' }}
-                      disabled={!inputUrl.trim()}
+                <div className="cabecalho-bubblescan">
+                  <div className="cabecalho-bubblescan-titulo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <img src="/imgs/logo.png" alt="Logo BubbleScan" style={{ height: '38px', width: '38px', objectFit: 'contain' }} />
+                    <h1
+                      className={`text-2xl font-bold mb-2 text-center text-gray-900`}
+                      style={{ ...(mostrarResultado ? { fontSize: '16pt' } : {}), marginBottom: '5px' }}
                     >
-                      Analisar
-                    </button>
-                    {urlError && <p className="mt-2 text-sm text-red-600 w-full">{urlError}</p>}
+                      Bubble <span style={{ fontFamily: 'Lexend Giga, sans-serif' }}>Scan</span>
+                    </h1>
+                  </div>
+                  {!mostrarResultado && (
+                    <p className="text-sm text-gray-600 text-center mb-8 -mt-2">Ferramenta de mapeamento do impulso coletivo.</p>
+                  )}
+                  {/* Input URL + Botão Analisar juntos */}
+                  <div className="mb-8 w-full">
+                    <label
+                      htmlFor="url"
+                      className="block font-medium text-gray-700 mb-2 text-left"
+                      style={{ fontSize: '11pt' }}
+                    >
+                      Cole o link no campo abaixo
+                    </label>
+                    <div className="flex flex-col md:flex-row md:items-center gap-4 w-full" style={{ justifyContent: 'space-between', display: 'flex' }}>
+                      <div className="input-icone-wrapper" style={{ position: 'relative', width: '100%' }}>
+                        <input
+                          id="url"
+                          placeholder="cole aqui a url"
+                          className="input-com-icone w-full px-4 py-2 border-2 rounded-md focus:ring-blue-500 focus:border-orange-400 italic placeholder-gray-400 border-gray-300"
+                          type="text"
+                          value={inputUrl}
+                          onChange={e => setInputUrl(e.target.value)}
+                          style={{ paddingLeft: '38px', minWidth: '220px', width: '100%' }}
+                        />
+                        <img
+                          src="/imgs/search-ico.png"
+                          alt="ícone de busca"
+                          style={{
+                            position: 'absolute',
+                            left: 12,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 18,
+                            height: 18,
+                            pointerEvents: 'none'
+                          }}
+                        />
+                      </div>
+                      <button
+                        className="analisar-btn px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-300 "
+                        style={{
+                          minWidth: '120px',
+                          marginTop: '0px',
+                          marginLeft: '10px',
+                          background: 'rgb(96, 121, 234)',
+                          color: 'white',
+                        }}
+                        onClick={analisarUrl}
+                      >
+                        Analisar
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {/* Logs */}
@@ -162,7 +194,7 @@ export default function HomeScreen() {
                     />
                     <footer className="mt-6 text-center text-gray-500 text-sm py-6 border-t border-gray-200" style={{ marginTop: '25px', marginBottom: '25px' }}>
                       <div>Contato: <a href="mailto:contato@bubblescan.com" className="underline hover:text-blue-700">contato@bubblescan.com</a></div>
-                      <div className="mt-2">Bubble Scan &copy; {new Date().getFullYear()}</div>
+                      <div className="mt-2">BubbleScan &copy; {new Date().getFullYear()}</div>
                     </footer>
                   </>
                 )}
