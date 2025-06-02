@@ -25,18 +25,19 @@ def coletar_comentarios_reddit(url: str) -> List[str]:
     
     # Validação das credenciais
     client_id = os.getenv('REDDIT_CLIENT_ID')
+    client_secret = os.getenv('REDDIT_CLIENT_SECRET')
     user_agent = os.getenv('REDDIT_USER_AGENT', 'BubbleScan/1.0 by u/seu_usuario')
     
-    if not client_id:
+    if not client_id or not client_secret:
         raise ValueError(
-            "Credencial do Reddit não configurada. "
-            "Configure a variável de ambiente REDDIT_CLIENT_ID"
+            "Credenciais do Reddit não configuradas. "
+            "Configure as variáveis de ambiente REDDIT_CLIENT_ID e REDDIT_CLIENT_SECRET"
         )
     
-    # Inicializa o cliente Reddit com o fluxo correto para installed apps
+    # Inicializa o cliente Reddit com autenticação completa
     reddit = praw.Reddit(
         client_id=client_id,
-        client_secret=None,  # Força o fluxo userless correto para installed apps
+        client_secret=client_secret,
         user_agent=user_agent,
         check_for_async=False  # Evita o warning "async environment"
     )

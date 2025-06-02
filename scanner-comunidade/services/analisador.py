@@ -7,6 +7,8 @@ import os
 import ast
 import json
 import time
+from src.utils.estrategias_discursivas import inferir_posicao_discursiva
+from src.utils.heuristicas_simbolicas import heuristicas_discursivas
 
 STOPWORDS = set(map(str.lower, {
     "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
@@ -16,7 +18,9 @@ STOPWORDS = set(map(str.lower, {
     "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
     "when", "make", "can", "like", "time", "no", "just", "him", "know", "take",
     "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
-    "than", "then", "now", "look", "only", "come", "its", "over", "think", "also"
+    "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
+    # Adicionadas para português e expressões comuns
+    "de", "quem", "para", "mais", "com", "que", "um", "uma", "os", "as", "dos", "das", "na", "no", "nas", "nos", "ao", "aos", "às", "à", "por", "se", "em", "é", "ser", "foi", "são", "tem", "há", "vai", "fui", "tive", "está", "estão", "estava", "estavam", "pra", "pro", "pelo", "pela", "pelos", "pelas", "para mais", "com mais", "de mais", "por mais", "em mais"
 }))
 
 def extrair_palavras_chave(comentarios: List[str], top_n: int = 10) -> List[str]:
@@ -116,6 +120,9 @@ Interprete como formas de sobrevivência simbólica. Ex: "Reclame antes que apon
 exemplo:
 Escolha uma interação onde o sujeito se divide entre dizer e apagar, entre aparecer e sumir. Ex: "O usuário chama seu próprio post de 'besteira sem importância' — isso protege sua imagem ao mesmo tempo em que o posiciona como vulnerável aceitável."
 
+📉 Caso não haja estrutura simbólica clara:
+Diga: "O campo simbólico está colapsado — há gozo sem costura e ausência de pacto comum."
+
 Retorne tudo como um JSON válido, sem explicações ou comentários. Use apenas aspas duplas.
 
 Comentários:
@@ -148,6 +155,18 @@ def analise_sociocultural(comentarios):
         print("🔍 Tentando análise com OpenAI...")
         resultado = analise_sociocultural_openai(comentarios)
         print("✅ OpenAI retornou com sucesso.")
+        # Integração das heurísticas discursivas e simbólicas
+        posicoes = [inferir_posicao_discursiva(c) for c in comentarios]
+        boas_praticas_estendidas = heuristicas_discursivas(posicoes)
+        if "boas_praticas" in resultado:
+            if isinstance(resultado["boas_praticas"], list):
+                resultado["boas_praticas"] += boas_praticas_estendidas
+            elif isinstance(resultado["boas_praticas"], str):
+                resultado["boas_praticas"] = [resultado["boas_praticas"]] + boas_praticas_estendidas
+            else:
+                resultado["boas_praticas"] = boas_praticas_estendidas
+        else:
+            resultado["boas_praticas"] = boas_praticas_estendidas
         return resultado
     except Exception as e:
         print("❌ Falha ao usar OpenAI:", str(e))

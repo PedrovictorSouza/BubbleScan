@@ -1,0 +1,6 @@
+@media (max-width: 768px) {
+  .analise-card {
+    border-radius: 20px !important;
+    margin-bottom: 20px !important;
+  }
+} 
