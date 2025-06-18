@@ -1,85 +1,56 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import re
 from collections import Counter
-from .openai_analisador import analisar_sentimento_com_ia
-import openai
-import os
-import ast
-import json
 import time
+import json
+import os
+import openai
+
+from .openai_analisador import analisar_sentimento_com_ia
+from services.utils.palavras_chave import extrair_palavras_chave_filtradas
+from .utils.texto import extrair_json_bruto
 from src.utils.estrategias_discursivas import inferir_posicao_discursiva
 from src.utils.heuristicas_simbolicas import heuristicas_discursivas
 
-STOPWORDS = set(map(str.lower, {
-    "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
-    "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
-    "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
-    "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
-    "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
-    "when", "make", "can", "like", "time", "no", "just", "him", "know", "take",
-    "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
-    "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
-    # Adicionadas para português e expressões comuns
-    "de", "quem", "para", "mais", "com", "que", "um", "uma", "os", "as", "dos", "das", "na", "no", "nas", "nos", "ao", "aos", "às", "à", "por", "se", "em", "é", "ser", "foi", "são", "tem", "há", "vai", "fui", "tive", "está", "estão", "estava", "estavam", "pra", "pro", "pelo", "pela", "pelos", "pelas", "para mais", "com mais", "de mais", "por mais", "em mais"
-}))
-
-def extrair_palavras_chave(comentarios: List[str], top_n: int = 10) -> List[str]:
-    texto_completo = " ".join(comentarios).lower()
-    palavras = re.findall(r'\b[a-zA-Z0-9\-]{2,}\b', texto_completo)
-    palavras_filtradas = [p for p in palavras if p.lower() not in STOPWORDS]
-    contador = Counter(palavras_filtradas)
-    return [palavra for palavra, _ in contador.most_common(top_n)]
-
+# Configurações
 TECNOLOGIAS_KNOWN = {
     "react", "vue", "nextjs", "copilot", "gpt", "claude", "docker",
     "python", "java", "node", "go", "rust", "fastapi", "huggingface"
 }
 
-def identificar_tecnologias(comentarios: List[str]) -> List[str]:
-    texto = " ".join(comentarios).lower()
-    return [tech for tech in TECNOLOGIAS_KNOWN if tech in texto]
+class AnalisadorTexto:
+    """Classe responsável por análise de texto e extração de informações"""
+    
+    @staticmethod
+    def extrair_palavras_chave(comentarios: List[str], top_n: int = 10) -> List[str]:
+        """Extrai as palavras-chave mais frequentes dos comentários"""
+        return extrair_palavras_chave_filtradas(comentarios, top_n)
+    
+    @staticmethod
+    def identificar_tecnologias(comentarios: List[str]) -> List[str]:
+        """Identifica tecnologias mencionadas nos comentários"""
+        texto = " ".join(comentarios).lower()
+        return [tech for tech in TECNOLOGIAS_KNOWN if tech in texto]
 
-def analisar_comentarios(comentarios: List[str]) -> Dict:
-    """
-    Analisa uma lista de comentários e retorna um dicionário com os resultados.
-    """
-    inicio = time.time()
-    print(f"\n🔍 Iniciando análise de {len(comentarios)} comentários...")
+class AnalisadorSociocultural:
+    """Classe responsável por análise sociocultural dos comentários"""
     
-    # Analisa o sentimento
-    sentimento = analisar_sentimento_com_ia(comentarios)
-    print(f"😊 Sentimento detectado: {sentimento}")
+    @staticmethod
+    def limitar_comentarios_por_tokens(comentarios: List[str], max_tokens: int = 14000) -> List[str]:
+        """Limita comentários baseado no número de tokens"""
+        total_chars = 0
+        comentarios_limitados = []
+        for c in comentarios:
+            total_chars += len(c)
+            if total_chars // 4 > max_tokens:
+                break
+            comentarios_limitados.append(c)
+        return comentarios_limitados
     
-    # Extrai palavras-chave
-    palavras_chave = extrair_palavras_chave(comentarios)
-    print(f"🔑 Palavras-chave extraídas: {', '.join(palavras_chave)}")
-    
-    # Identifica tecnologias
-    tecnologias = identificar_tecnologias(comentarios)
-    print(f"💻 Tecnologias identificadas: {', '.join(tecnologias)}")
-    
-    print(f"⏱️ Tempo de análise: {time.time() - inicio:.2f}s")
-    
-    return {
-        "sentimento": sentimento,
-        "palavras_chave": palavras_chave,
-        "tecnologias": tecnologias
-    }
-
-def limitar_comentarios_por_tokens(comentarios, max_tokens=14000):
-    total_chars = 0
-    comentarios_limitados = []
-    for c in comentarios:
-        total_chars += len(c)
-        if total_chars // 4 > max_tokens:
-            break
-        comentarios_limitados.append(c)
-    return comentarios_limitados
-
-def analise_sociocultural_openai(comentarios):
-    comentarios_limitados = limitar_comentarios_por_tokens(comentarios)
-    print("🔐 OPENAI_API_KEY capturada:", os.getenv("OPENAI_API_KEY"))
-    prompt = f'''
+    @staticmethod
+    def _gerar_prompt_analise(comentarios: List[str]) -> str:
+        """Gera o prompt para análise sociocultural"""
+        return f'''
 ⚠️ Instrução para o Copilot / API:
 
 IMPORTANTE:
@@ -118,7 +89,7 @@ boas_praticas:
 Interprete como formas de sobrevivência simbólica. Ex: "Reclame antes que apontem seu erro. A antecipação protege da exclusão."
 
 exemplo:
-Escolha uma interação onde o sujeito se divide entre dizer e apagar, entre aparecer e sumir. Ex: "O usuário chama seu próprio post de 'besteira sem importância' — isso protege sua imagem ao mesmo tempo em que o posiciona como vulnerável aceitável."
+Escolha uma interação onde o sujeito se divide entre dizer e apagar, entre aparecer e sumir. Ex: "O usuário chama seu próprio post de 'besteira sem importância' — isso protega sua imagem ao mesmo tempo em que o posiciona como vulnerável aceitável."
 
 📉 Caso não haja estrutura simbólica clara:
 Diga: "O campo simbólico está colapsado — há gozo sem costura e ausência de pacto comum."
@@ -126,38 +97,51 @@ Diga: "O campo simbólico está colapsado — há gozo sem costura e ausência d
 Retorne tudo como um JSON válido, sem explicações ou comentários. Use apenas aspas duplas.
 
 Comentários:
-{comentarios_limitados}
+{comentarios}
 '''
-    print("PROMPT ENVIADO PARA OPENAI:\n", prompt)
-    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=700,
-        temperature=0.7
-    )
-    content = response.choices[0].message.content
-    print("RESPOSTA BRUTA OPENAI:\n", content)
-    match = re.search(r'\{.*\}', content, re.DOTALL)
-    if match:
-        json_str = match.group(0)
-        try:
-            return json.loads(json_str)
-        except Exception as e:
-            print("DEBUG: Falha ao fazer json.loads no trecho extraído.", e)
-            raise
-    else:
-        print("DEBUG: Não foi possível extrair JSON da resposta.")
-        raise ValueError("Resposta da OpenAI não contém JSON válido.")
-
-def analise_sociocultural(comentarios):
-    try:
-        print("🔍 Tentando análise com OpenAI...")
-        resultado = analise_sociocultural_openai(comentarios)
-        print("✅ OpenAI retornou com sucesso.")
-        # Integração das heurísticas discursivas e simbólicas
+    
+    @staticmethod
+    def _processar_resposta_openai(content: str) -> Dict:
+        """Processa a resposta da OpenAI e extrai o JSON"""
+        json_str = extrair_json_bruto(content)
+        if json_str:
+            try:
+                return json.loads(json_str)
+            except Exception as e:
+                print("DEBUG: Falha ao fazer json.loads no trecho extraído.", e)
+                raise
+        else:
+            print("DEBUG: Não foi possível extrair JSON da resposta.")
+            raise ValueError("Resposta da OpenAI não contém JSON válido.")
+    
+    @staticmethod
+    def analisar_com_openai(comentarios: List[str]) -> Dict:
+        """Realiza análise sociocultural usando OpenAI"""
+        comentarios_limitados = AnalisadorSociocultural.limitar_comentarios_por_tokens(comentarios)
+        print("🔐 OPENAI_API_KEY capturada:", os.getenv("OPENAI_API_KEY"))
+        
+        prompt = AnalisadorSociocultural._gerar_prompt_analise(comentarios_limitados)
+        print("PROMPT ENVIADO PARA OPENAI:\n", prompt)
+        
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=700,
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content
+        print("RESPOSTA BRUTA OPENAI:\n", content)
+        
+        return AnalisadorSociocultural._processar_resposta_openai(content)
+    
+    @staticmethod
+    def _integrar_heuristicas(resultado: Dict, comentarios: List[str]) -> Dict:
+        """Integra heurísticas discursivas ao resultado da análise"""
         posicoes = [inferir_posicao_discursiva(c) for c in comentarios]
         boas_praticas_estendidas = heuristicas_discursivas(posicoes)
+        
         if "boas_praticas" in resultado:
             if isinstance(resultado["boas_praticas"], list):
                 resultado["boas_praticas"] += boas_praticas_estendidas
@@ -167,7 +151,74 @@ def analise_sociocultural(comentarios):
                 resultado["boas_praticas"] = boas_praticas_estendidas
         else:
             resultado["boas_praticas"] = boas_praticas_estendidas
+        
         return resultado
-    except Exception as e:
-        print("❌ Falha ao usar OpenAI:", str(e))
-        raise e  # ou use o fallback se quiser
+    
+    @staticmethod
+    def analisar(comentarios: List[str]) -> Dict:
+        """Realiza análise sociocultural completa"""
+        try:
+            print("🔍 Tentando análise com OpenAI...")
+            resultado = AnalisadorSociocultural.analisar_com_openai(comentarios)
+            print("✅ OpenAI retornou com sucesso.")
+            
+            # Integração das heurísticas discursivas e simbólicas
+            resultado = AnalisadorSociocultural._integrar_heuristicas(resultado, comentarios)
+            
+            return resultado
+        except Exception as e:
+            print("❌ Falha ao usar OpenAI:", str(e))
+            raise e
+
+class AnalisadorComentarios:
+    """Classe principal para análise de comentários"""
+    
+    def __init__(self):
+        self.analisador_texto = AnalisadorTexto()
+        self.analisador_sociocultural = AnalisadorSociocultural()
+    
+    def analisar_comentarios(self, comentarios: List[str]) -> Dict:
+        """
+        Analisa uma lista de comentários e retorna um dicionário com os resultados.
+        """
+        inicio = time.time()
+        print(f"\n🔍 Iniciando análise de {len(comentarios)} comentários...")
+        
+        # Analisa o sentimento
+        sentimento = analisar_sentimento_com_ia(comentarios)
+        print(f"😊 Sentimento detectado: {sentimento}")
+        
+        # Extrai palavras-chave
+        palavras_chave = extrair_palavras_chave_filtradas(comentarios)
+        print(f"🔑 Palavras-chave extraídas: {', '.join(palavras_chave)}")
+        
+        # Identifica tecnologias
+        tecnologias = self.analisador_texto.identificar_tecnologias(comentarios)
+        print(f"💻 Tecnologias identificadas: {', '.join(tecnologias)}")
+        
+        print(f"⏱️ Tempo de análise: {time.time() - inicio:.2f}s")
+        
+        return {
+            "sentimento": sentimento,
+            "palavras_chave": palavras_chave,
+            "tecnologias": tecnologias
+        }
+    
+    def analise_sociocultural(self, comentarios: List[str]) -> Dict:
+        """Realiza análise sociocultural dos comentários"""
+        return self.analisador_sociocultural.analisar(comentarios)
+
+# Funções de conveniência para manter compatibilidade
+def analisar_comentarios(comentarios: List[str]) -> Dict:
+    """Função de conveniência para análise básica de comentários"""
+    analisador = AnalisadorComentarios()
+    return analisador.analisar_comentarios(comentarios)
+
+def analise_sociocultural(comentarios: List[str]) -> Dict:
+    """Função de conveniência para análise sociocultural"""
+    analisador = AnalisadorComentarios()
+    return analisador.analise_sociocultural(comentarios)
+
+def analise_sociocultural_openai(comentarios: List[str]) -> Dict:
+    """Função de conveniência para análise sociocultural com OpenAI"""
+    return AnalisadorSociocultural.analisar_com_openai(comentarios)
